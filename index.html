@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptAI Pic - Image to AI Prompt</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for FAQ toggle animation */
+        .faq-answer {
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .faq-answer.active {
+            max-height: 300px; /* Adjust as needed */
+            padding-top: 1.5rem;  /* Corresponds to p-6 */
+            padding-bottom: 1.5rem; /* Corresponds to p-6 */
+        }
+        .faq-toggle-icon {
+            transition: transform 0.3s ease-out;
+        }
+        .faq-toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+        /* Basic font - Tailwind handles most */
+        body {
+            font-family: sans-serif; /* Fallback */
+        }
+        /* Simple loading animation */
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        .bounce-loading div {
+            width: 0.75rem; /* w-3 */
+            height: 0.75rem; /* h-3 */
+            background-color: #60a5fa; /* bg-blue-400 */
+            border-radius: 9999px; /* rounded-full */
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .bounce-loading .bounce1 { animation-delay: -0.32s; }
+        .bounce-loading .bounce2 { animation-delay: -0.16s; }
+        .bounce-loading .bounce3 { animation-delay: 0s; }
+
+        /* Hide the default file input */
+        input[type="file"].hidden {
+            display: none;
+        }
+
+        /* Ensure smooth scroll works well with sticky header */
+        html {
+            scroll-padding-top: 80px; /* Adjust based on your header height */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white text-gray-900 font-sans">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-100">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-500"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <span class="text-2xl font-semibold">PromptAI<span class="text-blue-500">Pic</span></span>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#features" class="text-gray-600 hover:text-blue-500 transition">Features</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-blue-500 transition">How It Works</a>
+                <a href="#testimonials" class="text-gray-600 hover:text-blue-500 transition">Testimonials</a>
+                <a href="#faq" class="text-gray-600 hover:text-blue-500 transition">FAQ</a>
+            </nav>
+            <button id="scroll-to-upload-header" class="hidden md:block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full transition shadow-sm">
+                Get Started
+            </button>
+            <button class="md:hidden text-gray-600">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-20 md:py-32 bg-gradient-to-b from-blue-50 to-white">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col items-center text-center md:text-left">
+                <!-- Top Part (Text Content) -->
+                <div class="w-full md:w-4/5 lg:w-3/4 mb-16">
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
+                        Transform Images into <span class="text-blue-500">Powerful AI Prompts</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8">
+                        Upload any image and get optimized prompts for AI image generation platforms.
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+                        <button id="scroll-to-upload-hero" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full transition shadow-sm flex items-center justify-center">
+                            Try It Free
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 w-5 h-5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                        <button class="border border-gray-300 hover:border-blue-500 text-gray-700 px-8 py-3 rounded-full transition flex items-center justify-center">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bottom Part (Image Uploader - Target Section for Scrolling) -->
+                <div id="image-upload-section" class="w-full md:max-w-xl lg:max-w-2xl">
+                    <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+                        <!-- Upload Area -->
+                        <div id="upload-area" class="flex flex-col items-center justify-center space-y-4">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                            </div>
+                            <h3 class="text-xl font-semibold">Upload Your Image</h3>
+                            <p class="text-gray-500 text-center">Drag & drop an image file here, or click to browse</p>
+                            <label class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full transition">
+                                Select Image
+                                <input type="file" id="image-input" class="hidden" accept="image/jpeg, image/png, image/webp" />
+                            </label>
+                        </div>
+                        <!-- Preview Area -->
+                        <div id="preview-area" class="hidden flex-col items-center justify-center space-y-4">
+                            <div class="w-full h-48 bg-gray-100 rounded-lg overflow-hidden mb-4">
+                                <img id="image-preview" src="#" alt="Uploaded preview" class="w-full h-full object-contain" />
+                            </div>
+                            <!-- Prompt Output -->
+                            <div id="prompt-output-area" class="w-full hidden">
+                                <h4 class="font-medium mb-2">Generated Prompt:</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <p id="generated-prompt-text" class="text-gray-700 break-words whitespace-pre-wrap"></p>
+                                </div>
+                                <button id="copy-prompt-button" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center">
+                                    Copy Prompt
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 w-4 h-4"><path d="M20 6 9 17l-5-5"/></svg>
+                                </button>
+                                <button id="upload-another-button" class="mt-2 w-full border border-blue-500 text-blue-500 hover:bg-blue-50 px-4 py-2 rounded-lg transition">
+                                    Upload Another
+                                </button>
+                            </div>
+                            <!-- Error Display -->
+                             <div id="error-area" class="w-full hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                                <strong class="font-bold">Error:</strong>
+                                <span class="block sm:inline ml-2" id="error-message"></span>
+                             </div>
+                            <!-- Loading Indicator -->
+                            <div id="loading-indicator" class="w-full flex items-center justify-center py-8 hidden">
+                                 <div class="bounce-loading">
+                                    <div class="bounce1"></div>
+                                    <div class="bounce2"></div>
+                                    <div class="bounce3"></div>
+                                 </div>
+                                 <span class="ml-3 text-gray-600">Generating Prompt...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Hero Section -->
+
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+         <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Advanced Features</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Everything you need to create perfect AI prompts from your images
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M18 13a6 6 0 0 0-9-9"/><path d="M6 21a6 6 0 0 0 9-9"/><path d="M18 13h-6"/><path d="M13 18V12"/><path d="M13 8V2"/><path d="M8 13H2"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">AI-Powered Analysis</h3>
+                    <p class="text-gray-600">Our advanced AI analyzes your images to generate highly descriptive and effective prompts.</p>
+                </div>
+                 <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-500"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Optimized Prompts</h3>
+                    <p class="text-gray-600">Get prompts optimized for various AI platforms including Stable Diffusion and DALL-E.</p>
+                </div>
+                 <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-500"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Lightning Fast</h3>
+                    <p class="text-gray-600">Generate prompts in seconds with our high-performance processing engine.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-gray-50">
+          <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Simple steps to transform your images into powerful AI prompts
+                </p>
+            </div>
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <div class="absolute top-0 left-6 h-full w-0.5 bg-gray-200 hidden md:block"></div>
+                    <div class="relative mb-12 pl-12 md:pl-20">
+                        <div class="absolute top-0 left-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">1</div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm ml-4 md:ml-0">
+                            <h3 class="text-xl font-semibold mb-3">Upload Your Image</h3>
+                            <p class="text-gray-600">Simply drag & drop or select an image file from your device.</p>
+                        </div>
+                    </div>
+                     <div class="relative mb-12 pl-12 md:pl-20">
+                        <div class="absolute top-0 left-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">2</div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm ml-4 md:ml-0">
+                            <h3 class="text-xl font-semibold mb-3">AI Analysis</h3>
+                            <p class="text-gray-600">Our AI analyzes the visual elements, composition, and style of your image.</p>
+                        </div>
+                    </div>
+                     <div class="relative mb-12 pl-12 md:pl-20">
+                        <div class="absolute top-0 left-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">3</div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm ml-4 md:ml-0">
+                            <h3 class="text-xl font-semibold mb-3">Get Your Prompt</h3>
+                            <p class="text-gray-600">Receive a detailed, optimized prompt ready for your AI platform of choice.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+     <!-- Testimonials Section -->
+    <section id="testimonials" class="py-20 bg-white">
+       <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Trusted by creative professionals and developers worldwide
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                 <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
+                     <div class="flex items-center mb-6">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                     </div>
+                     <p class="text-lg text-gray-700 italic mb-6">"PromptAI Pic has revolutionized my creative workflow. The prompts are incredibly accurate!"</p>
+                     <p class="font-medium text-gray-900">— Sarah J., Digital Artist</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
+                     <div class="flex items-center mb-6">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                     </div>
+                     <p class="text-lg text-gray-700 italic mb-6">"As a developer working with AI models, this tool saves me hours of prompt engineering."</p>
+                     <p class="font-medium text-gray-900">— Michael T., AI Researcher</p>
+                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Everything you need to know about PromptAI Pic
+                </p>
+            </div>
+            <div class="max-w-3xl mx-auto" id="faq-list">
+                 <div class="mb-4 faq-item">
+                    <button class="faq-question w-full flex justify-between items-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-500 transition text-left">
+                        <span class="font-medium text-lg">What image formats do you support?</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="faq-toggle-icon w-5 h-5 text-gray-500"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="faq-answer bg-gray-50 rounded-b-lg border border-t-0 border-gray-200">
+                         <div class="p-6">
+                            <p class="text-gray-700">We support JPG, PNG, and WEBP formats up to 10MB in size.</p>
+                         </div>
+                    </div>
+                </div>
+                 <div class="mb-4 faq-item">
+                    <button class="faq-question w-full flex justify-between items-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-500 transition text-left">
+                        <span class="font-medium text-lg">How accurate are the generated prompts?</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="faq-toggle-icon w-5 h-5 text-gray-500"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="faq-answer bg-gray-50 rounded-b-lg border border-t-0 border-gray-200">
+                         <div class="p-6">
+                             <p class="text-gray-700">Our AI achieves over 92% accuracy in prompt generation based on user testing.</p>
+                         </div>
+                    </div>
+                </div>
+                  <div class="mb-4 faq-item">
+                    <button class="faq-question w-full flex justify-between items-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-500 transition text-left">
+                        <span class="font-medium text-lg">Is there an API available?</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="faq-toggle-icon w-5 h-5 text-gray-500"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="faq-answer bg-gray-50 rounded-b-lg border border-t-0 border-gray-200">
+                        <div class="p-6">
+                            <p class="text-gray-700">Yes, we offer API access for enterprise customers. Contact us for details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta" class="py-20 bg-blue-500 text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Images?</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">
+                Join thousands of creators and developers using PromptAI Pic today
+            </p>
+            <button id="scroll-to-upload-cta" class="bg-white text-blue-500 hover:bg-gray-100 px-8 py-3 rounded-full font-medium transition shadow-lg">
+                Get Started For Free
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white py-12">
+         <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-400"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        <span class="text-2xl font-semibold">PromptAI<span class="text-blue-400">Pic</span></span>
+                    </div>
+                    <p class="text-gray-400">Transforming images into powerful AI prompts.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Pricing</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">API</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">About</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Careers</a></li>
+                    </ul>
+                </div>
+                <div>
+                     <h4 class="text-lg font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Terms</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 mb-4 md:mb-0">© 2024 PromptAI Pic. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Twitter">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M22 4s-.7 2.1-2.4 3.4C21.6 7.1 23 5.4 23 3c-1.1.6-2.3 1-3.6 1.2C18.3 3.1 17 2.5 15.6 2.5c-2.9 0-5.2 2.3-5.2 5.2 0 .4.1.8.2 1.2-4.4-.2-8.3-2.3-10.9-5.5-.5.8-.7 1.8-.7 2.8 0 1.8.9 3.4 2.3 4.3-.8 0-1.6-.2-2.2-.6v.1c0 2.5 1.8 4.6 4.1 5.1-.4.1-.9.2-1.4.2-.3 0-.6 0-.9-.1.7 2.1 2.6 3.6 4.9 3.6-1.8 1.4-4 2.2-6.5 2.2-.4 0-.8 0-1.2-.1 2.3 1.5 5 2.4 7.9 2.4 9.5 0 14.6-7.8 14.6-14.6v-.7c1-.7 1.8-1.6 2.5-2.6Z"/></svg>
+                    </a>
+                    <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                    </a>
+                    <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Github">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-1.5 6-6.5.5-1.5-.5-3-1.5-4 .5-1 .5-2.5-.5-3.5-1 0-3 1-4 2C11.5 5.5 10.5 5.5 9.5 5.5c-1-.5-3-2-4-2C4.5 3.5 4.5 5 5 6c-1 1-2 2.5-1.5 4 0 5 3 6.5 6 6.5-1 1-1.5 2.5-1.5 3.5V22"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- JavaScript Section ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get DOM Elements
+            const imageInput = document.getElementById('image-input');
+            const uploadArea = document.getElementById('upload-area');
+            const previewArea = document.getElementById('preview-area');
+            const imagePreview = document.getElementById('image-preview');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const promptOutputArea = document.getElementById('prompt-output-area');
+            const generatedPromptText = document.getElementById('generated-prompt-text');
+            const copyPromptButton = document.getElementById('copy-prompt-button');
+            const uploadAnotherButton = document.getElementById('upload-another-button');
+            const faqList = document.getElementById('faq-list');
+            const errorArea = document.getElementById('error-area');
+            const errorMessage = document.getElementById('error-message');
+            const scrollToUploadHeaderBtn = document.getElementById('scroll-to-upload-header');
+            const scrollToUploadHeroBtn = document.getElementById('scroll-to-upload-hero');
+            const scrollToUploadCtaBtn = document.getElementById('scroll-to-upload-cta');
+            const uploadSection = document.getElementById('image-upload-section');
+
+            let currentActiveFAQ = null;
+            let currentFile = null;
+
+            // --- Dify API Configuration ---
+            // !!! IMPORTANT: Replace placeholders with your actual Dify API details !!!
+            // Using the new key you provided
+            const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
+            const DIFY_API_KEY = 'app-1sia7edCUVnSs61OZrjQsUZk'; // <-- Updated Key
+
+            // --- Helper Function to Display Errors ---
+            function displayError(message) {
+                if (errorMessage && errorArea) {
+                     if (message) {
+                        errorMessage.textContent = message;
+                        errorArea.classList.remove('hidden');
+                    } else {
+                        errorMessage.textContent = '';
+                        errorArea.classList.add('hidden');
+                    }
+                } else {
+                    console.error("Error display elements not found. Message:", message);
+                }
+            }
+
+            // --- Scroll-to-Upload Logic ---
+            function handleScrollToUpload(event) {
+                event.preventDefault();
+                if (uploadSection) {
+                    uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    console.error("Target upload section (#image-upload-section) not found for scrolling.");
+                }
+            }
+
+            // Add listeners only if buttons exist
+            if (scrollToUploadHeaderBtn) scrollToUploadHeaderBtn.addEventListener('click', handleScrollToUpload);
+            if (scrollToUploadHeroBtn) scrollToUploadHeroBtn.addEventListener('click', handleScrollToUpload);
+            if (scrollToUploadCtaBtn) scrollToUploadCtaBtn.addEventListener('click', handleScrollToUpload);
+
+            // --- Image Upload Logic ---
+            if(imageInput && uploadArea && previewArea && imagePreview && loadingIndicator && promptOutputArea) {
+                imageInput.addEventListener('change', (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            displayError('Please select a JPG, PNG, or WEBP image file.');
+                            imageInput.value = ''; return;
+                        }
+                        const maxSizeMB = 10;
+                        if (file.size > maxSizeMB * 1024 * 1024) {
+                            displayError(`File size exceeds the ${maxSizeMB}MB limit.`);
+                            imageInput.value = ''; return;
+                        }
+
+                        currentFile = file;
+                        displayError(null);
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            uploadArea.classList.add('hidden');
+                            previewArea.classList.remove('hidden');
+                            previewArea.classList.add('flex');
+                            imagePreview.src = event.target?.result;
+
+                            loadingIndicator.classList.remove('hidden');
+                            promptOutputArea.classList.add('hidden');
+                            displayError(null);
+
+                            callDifyAPI(currentFile)
+                                .then(promptText => {
+                                    if (generatedPromptText) generatedPromptText.textContent = promptText;
+                                    loadingIndicator.classList.add('hidden');
+                                    promptOutputArea.classList.remove('hidden');
+                                    displayError(null);
+                                })
+                                .catch(error => {
+                                    // Log the detailed error object before displaying a generic message
+                                    console.error('API Call failed object:', error);
+                                    loadingIndicator.classList.add('hidden');
+                                    // Display the specific error message from the caught error
+                                    displayError(error.message || 'An unknown error occurred while generating the prompt.');
+                                    promptOutputArea.classList.add('hidden');
+                                });
+                        };
+                        reader.onerror = () => {
+                            displayError('Error reading the selected file.');
+                            currentFile = null;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        currentFile = null;
+                    }
+                });
+            } else {
+                console.error("Core image upload/preview elements not found!");
+                displayError("Page initialization error: Upload component not found.");
+            }
+
+
+             // --- Dify API Call Function ---
+            async function callDifyAPI(file) {
+                 if (!file) return Promise.reject(new Error('No file selected.'));
+                 // Basic check if key/url look like placeholders, can be removed if hardcoded correctly
+                 if (DIFY_API_URL.includes('YOUR_') || DIFY_API_KEY.includes('YOUR_')) {
+                     throw new Error('API configuration seems incomplete. Please replace placeholders.');
+                 }
+
+                // --- Step 1: Upload File to Dify ---
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', file);
+                uploadFormData.append('user', 'promptai-pic-user-' + Date.now());
+
+                console.log("Step a: Uploading file to Dify...");
+                let fileInfo = null; // Renamed variable to avoid confusion
+                let baseApiUrl = '';
+                 try { baseApiUrl = DIFY_API_URL.split('/v1/')[0] + '/v1'; } catch (e) { throw new Error("Invalid DIFY_API_URL format."); }
+                 if(!baseApiUrl) throw new Error("Could not determine base API URL from DIFY_API_URL.");
+                const fileUploadUrl = `${baseApiUrl}/files/upload`;
+                console.log("File Upload URL:", fileUploadUrl);
+
+
+                try {
+                    const uploadResponse = await fetch(fileUploadUrl, { method: 'POST', headers: { 'Authorization': `Bearer ${DIFY_API_KEY}` }, body: uploadFormData });
+                    if (!uploadResponse.ok) {
+                        let errorText = `HTTP error ${uploadResponse.status}: ${uploadResponse.statusText}`; // Include status text
+                        try { const errorData = await uploadResponse.json(); errorText = `Dify file upload failed: ${errorData.code || errorData.message || uploadResponse.status}`; } catch (e) { /* Ignore */ }
+                        throw new Error(errorText);
+                    }
+                    const uploadResult = await uploadResponse.json();
+
+                    // --- MODIFICATION START (Previous modification, should be correct) ---
+                    // Check if uploadResult has an ID
+                    if (!uploadResult || !uploadResult.id) {
+                         console.error("Dify Upload Response missing ID:", uploadResult);
+                         throw new Error('Dify file upload response did not contain a valid ID.');
+                    }
+
+                    // Manually construct the object expected by /workflows/run for file input
+                    const imageInputValue = {
+                        type: "image",             // Specify the type as image
+                        transfer_method: "remote_url", // Indicate the file is already on Dify's server
+                        upload_file_id: uploadResult.id  // Use the ID from the upload result
+                    };
+                    fileInfo = imageInputValue; // Use the newly constructed object
+                    // --- MODIFICATION END ---
+
+                    if (!fileInfo) { // This check might be less relevant now but keep for safety
+                        console.error("Failed to construct fileInfo payload:", uploadResult);
+                        throw new Error('Failed to prepare file input payload.');
+                    }
+                    // Use a different log message to distinguish the prepared value
+                    console.log("File uploaded successfully, Prepared File Input Value:", fileInfo);
+
+                } catch (uploadError) {
+                    // Log the specific upload error before re-throwing
+                    console.error('Dify file upload error details:', uploadError);
+                    const userMessage = uploadError.message.includes("Dify file upload failed:") || uploadError.message.includes("HTTP error") ? uploadError.message : `Error uploading image to Dify. Please check network connection or API key.`;
+                    throw new Error(userMessage); // Re-throw the error to be caught by the outer catch
+                }
+
+                // --- Step 2: Run Dify Workflow ---
+                const workflowPayload = {
+                    inputs: {
+                        "input_image": fileInfo // This now uses the manually constructed imageInputValue
+                    },
+                    response_mode: "blocking",
+                    user: uploadFormData.get('user')
+                };
+
+                console.log("Step b: Calling Dify Workflow API...");
+                console.log("Sending Payload:", JSON.stringify(workflowPayload, null, 2)); // Check the payload here
+
+                try {
+                    const response = await fetch(DIFY_API_URL, { method: 'POST', headers: { 'Authorization': `Bearer ${DIFY_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(workflowPayload) });
+                    console.log("Received Dify Workflow API response status:", response.status);
+
+                    if (!response.ok) {
+                         let errorText = `HTTP error ${response.status}: ${response.statusText}`;
+                         let errorData = null; // Define errorData outside the try block
+                         try {
+                             errorData = await response.json(); // Try to parse JSON error response
+                             console.error("Dify Workflow API Error Response:", errorData); // Log the parsed error object
+                             errorText = `Dify Workflow API request failed: ${errorData.code || errorData.message || response.status}`;
+                         } catch (e) {
+                             console.error("Could not parse Dify Workflow API error response as JSON.", e);
+                             // If JSON parsing fails, stick with the HTTP error text
+                         }
+                        throw new Error(errorText); // Throw the error with details
+                    }
+
+                    const data = await response.json();
+                    console.log("Dify Workflow API Success Response:", data);
+
+                    // Check for application-level errors in the success response
+                    if (data.status === 'failed' || data.error) {
+                         // Even with 200 OK, Dify might signal failure internally
+                        throw new Error(`Dify workflow execution failed internally: ${data.error || data.message || 'Unknown error'}`);
+                    }
+
+                    // --- MODIFICATION START ---
+                    // Access the actual result data, which is likely inside the 'data' field for blocking mode
+                    const resultData = data.data; // Get the nested data object
+
+                    // Check if the nested 'data' object exists
+                    if (!resultData) {
+                        console.error("Dify response's 'data' field is missing or empty:", data);
+                        throw new Error('Dify workflow response missing nested "data" object.');
+                    }
+
+                    // Now look for 'outputs' within the nested 'resultData'
+                    const workflowOutputs = resultData.outputs;
+
+                    // Check if 'outputs' exists within the nested 'resultData'
+                    if (!workflowOutputs) {
+                        console.error("Nested 'data' object missing 'outputs':", resultData);
+                        // It's possible 'blocking' mode didn't fully complete or structure is different
+                        // Check if the resultData itself contains the text directly (less likely but possible)
+                        // IMPORTANT: Adjust 'text' here if your actual output key is different (e.g., 'generated_prompt')
+                        if (typeof resultData.generated_prompt === 'string') { // <--- CHECK FOR YOUR ACTUAL OUTPUT KEY
+                             console.warn("Outputs object missing, but found result directly in nested data. Using key 'generated_prompt'.");
+                             return resultData.generated_prompt.trim(); // <--- USE YOUR ACTUAL OUTPUT KEY
+                        }
+                        // If neither outputs nor direct key found, throw the error about missing outputs
+                        throw new Error('Dify workflow response missing "outputs" object.');
+                    }
+                    // --- MODIFICATION END ---
+
+
+                    // Access the output from workflowOutputs using the correct key
+                    // --- MODIFICATION START ---
+                    // Original: const generatedText = workflowOutputs.text;
+                    const generatedText = workflowOutputs.generated_prompt; // <--- USE YOUR ACTUAL OUTPUT KEY ('generated_prompt')
+
+                    // Check if the expected field exists and is a string
+                    if (typeof generatedText !== 'string') {
+                        // Update the error message to reflect the key we are looking for
+                        console.error(`Could not find '${generatedText === undefined ? 'generated_prompt' : 'value'}' field in outputs or it's not a string:`, workflowOutputs);
+                        throw new Error(`Invalid or missing "generated_prompt" field in Dify workflow outputs.`); // <--- UPDATE ERROR MESSAGE
+                    }
+                    // --- MODIFICATION END ---
+
+                     // Trim only if it's definitely a string
+                    if (generatedText.trim() === '') {
+                         console.warn("Received empty 'generated_prompt' output from Dify."); // <-- Update log message
+                         // Decide if empty string is acceptable or an error
+                         // throw new Error('Received empty prompt from Dify workflow.');
+                    }
+
+                    return generatedText.trim(); // Return the result
+
+                } catch (error) {
+                    // Log the error from the workflow execution step
+                    console.error('Error calling Dify Workflow API details:', error);
+                    // Construct a user-friendly message, prioritizing specific API errors
+                    const userMessage = error.message.startsWith("Dify") ? error.message : `Error during prompt generation. Please check network or API configuration. (${error.message})`;
+                    throw new Error(userMessage); // Re-throw the error to be caught by the outer catch
+                }
+            } // End of callDifyAPI function
+
+            // --- Upload Another Button ---
+             if(uploadAnotherButton) {
+                uploadAnotherButton.addEventListener('click', () => {
+                     if (previewArea) previewArea.classList.add('hidden');
+                     if (previewArea) previewArea.classList.remove('flex');
+                     if (uploadArea) uploadArea.classList.remove('hidden');
+                     if (imagePreview) imagePreview.src = '#';
+                     if (generatedPromptText) generatedPromptText.textContent = '';
+                     if (promptOutputArea) promptOutputArea.classList.add('hidden');
+                     displayError(null);
+                     if (imageInput) imageInput.value = '';
+                     currentFile = null;
+                });
+             } else { console.warn("#upload-another-button not found"); }
+
+            // --- Copy Prompt Button ---
+             if(copyPromptButton && generatedPromptText) {
+                copyPromptButton.addEventListener('click', () => {
+                    const promptText = generatedPromptText.textContent;
+                    if (promptText && navigator.clipboard) {
+                        navigator.clipboard.writeText(promptText).then(() => {
+                            copyPromptButton.textContent = 'Copied!';
+                            copyPromptButton.disabled = true;
+                            setTimeout(() => {
+                                copyPromptButton.innerHTML = `Copy Prompt <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 w-4 h-4"><path d="M20 6 9 17l-5-5"/></svg>`;
+                                copyPromptButton.disabled = false;
+                            }, 1500);
+                        }).catch(err => {
+                            console.error('Failed to copy text: ', err);
+                            displayError('Failed to copy prompt to clipboard.');
+                        });
+                    } else {
+                        displayError('Clipboard API not available or no prompt to copy.');
+                    }
+                });
+             } else { console.warn("#copy-prompt-button or #generated-prompt-text not found"); }
+
+            // --- FAQ Toggle Logic ---
+            if (faqList) {
+                faqList.addEventListener('click', (e) => {
+                    const questionButton = e.target.closest('.faq-question');
+                    if (questionButton) {
+                        const faqItem = questionButton.closest('.faq-item');
+                        const answerDiv = faqItem?.querySelector('.faq-answer');
+                        const icon = questionButton.querySelector('.faq-toggle-icon');
+                        if (!faqItem || !answerDiv || !icon) return;
+                        const allItems = Array.from(faqList.children);
+                        const index = allItems.indexOf(faqItem);
+                        if (currentActiveFAQ !== null && currentActiveFAQ !== index) {
+                            const prevItem = allItems[currentActiveFAQ];
+                            const prevAnswer = prevItem?.querySelector('.faq-answer');
+                            const prevIcon = prevItem?.querySelector('.faq-toggle-icon');
+                            if (prevAnswer) prevAnswer.classList.remove('active');
+                            if (prevIcon) prevIcon.classList.remove('rotated');
+                        }
+                        answerDiv.classList.toggle('active');
+                        icon.classList.toggle('rotated');
+                        currentActiveFAQ = answerDiv.classList.contains('active') ? index : null;
+                    }
+                });
+            } else {
+                 console.warn("FAQ list container #faq-list not found.");
+            }
+
+        });
+    </script>
+
+</body>
+</html>
